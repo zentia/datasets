@@ -9,7 +9,7 @@ from peft import PeftModel
 from peft import LoraConfig, TaskType, get_peft_model
 import subprocess
 from python.lua_split import extract_file, get_method
-import python.rename_to_lowercase
+import python.common
 
 
 working_directory = '/media/liyanfeng/1TSata/trunk_proj/Tools/osg-dev-kit/lsp-server'
