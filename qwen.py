@@ -14,9 +14,6 @@ import python.rename_to_lowercase
 
 working_directory = '/media/liyanfeng/1TSata/trunk_proj/Tools/osg-dev-kit/lsp-server'
 
-
-
-
 def execute_segment(path:str):
     # path='Logic/UISystem/PVPSettle/PVPSettleModule.lua'
     get_method(lua_file=path)
@@ -75,15 +72,6 @@ def read_lua_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
     return content
-
-def change_file_extension(file_path, new_extension):
-    # 获取文件名和旧后缀名
-    file_name, old_extension = os.path.splitext(file_path)
-    
-    # 构建新的文件路径
-    new_file_path = file_name + new_extension
-        
-    return new_file_path
 
 
 # 指定新的后缀名
