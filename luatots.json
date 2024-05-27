@@ -1,0 +1,12 @@
+[
+    {
+        "instruction": "Lua翻译成TypeScript",
+        "input": "import(\"SoundService\")\nimport(\"SoundEventDeclare\")",
+        "output": "export * from './SoundService.mjs';\nexport * from './SoundEventDeclare.mjs';"
+    },
+    {
+        "instruction": "Lua翻译成TypeScript",
+        "input": "---@class PVPBattleSettleRelativeClass\n---@field HeroNum number 英雄数量\n---@field CareerCamp number 羁绊ID\nlocal PVPBattleSettleRelativeClass = DeclareClass(\"PVPBattleSettleRelativeClass\")\nfunction PVPBattleSettleRelativeClass:ctor()\n\tself.HeroNum = 0\n\tself.CareerCamp = 0\nend\n\n---@param relative OSProto.PVPRelationInfo\nfunction PVPBattleSettleRelativeClass:Init(relative)\n\tself.HeroNum = relative.RelationNum or 0\n\tself.CareerCamp = relative.RelationID or 0\nend",
+        "output": "/* eslint-disable camelcase */\n/* eslint-disable @typescript-eslint/naming-convention */\nexport class PVPBattleSettleRelativeClass extends OSObject {\n\tpublic HeroNum: number;\n\tpublic CareerCamp: number;\n\tconstructor() {\n\t\tthis.HeroNum = 0;\n\t\tthis.CareerCamp = 0;\n\t}\n\n\tpublic Init(relative: OSProto.PVPRelationInfo): void {\n\t\tthis.HeroNum = relative.RelationNum ?? 0;\n\t\tthis.CareerCamp = relative.RelationID ?? 0;\n\t}\n};"
+    }
+]

@@ -1,0 +1,7 @@
+/input
+/output
+/wandb
+/typescript/node_modules
+/typescript/out
+/python/__pycache__
+*.log
