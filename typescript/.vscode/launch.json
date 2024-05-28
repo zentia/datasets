@@ -8,10 +8,10 @@
         "type": "node", // 配置类型
         "request": "launch", // 请求配置类型
         "name": "Launch Program",
-        "program": "${workspaceFolder}/index.ts", // 代码入口文件，绝对路径
+        "program": "${workspaceFolder}/src/index.ts", // 代码入口文件，绝对路径
         "args": ["/media/liyanfeng/2TM2/OSCE_0704/Project/DevAssets/TypeScript_AI/src/Logic/GM/GMRank/RankBattlevGMPath.mts"],
         // "preLaunchTask": "tsc: build - tsconfig.json", // 调试前需要做的任务,这一行注释掉也没问题。
-        "outFiles": ["${workspaceFolder}/out/**/*.js"] // 编译后输出的位置
+        "outFiles": ["${workspaceFolder}/dist/**/*.js"] // 编译后输出的位置
       }
     ]
   }

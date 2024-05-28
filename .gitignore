@@ -2,6 +2,6 @@
 /output
 /wandb
 /typescript/node_modules
-/typescript/out
+/typescript/dist
 /python/__pycache__
 *.log

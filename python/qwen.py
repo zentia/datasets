@@ -1,4 +1,4 @@
-import torch
+# env aixcoder-7b
 from modelscope import AutoModelForCausalLM, AutoTokenizer
 import os
 import fnmatch
@@ -8,8 +8,7 @@ from modelscope import AutoConfig, AutoModelForCausalLM
 from peft import PeftModel
 from peft import LoraConfig, TaskType, get_peft_model
 import subprocess
-from python.lua_split import extract_file, get_method
-import python.common
+import common
 
 
 working_directory = '/media/liyanfeng/1TSata/trunk_proj/Tools/osg-dev-kit/lsp-server'
@@ -140,7 +139,7 @@ def reasoning_element(prompt:str):
   # 使用模型的generate方法进行文本生成
   generated_ids = model.generate(
     model_inputs.input_ids,
-    max_new_tokens=1024*7
+    max_new_tokens=1024*9
   )
   generated_ids = [
       output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -227,7 +226,20 @@ def reasoning(file:str, force:bool):
     if not os.path.exists(directory):
         os.makedirs(directory)
     response = reasoning_element(prompt)
-    write_file(temp,response,new_extension)
-    
-for file in lua_files:
-    reasoning(file,False)
+    write_file(temp,response,new_extension)    
+
+if __name__ == '__main__':
+    ts_dirs = '../output/typescript'
+    lua_dirs = '../output/lua'
+    common.clear_folder(ts_dirs)
+    for root, dirs, files in os.walk(lua_dirs):
+        for file in files:
+            path = os.path.join(root, file)
+            with open(path,'r',encoding='utf-8') as lua:
+                response = reasoning_element(lua.read())
+                ts_path = path.replace('/output/lua','/output/typescript')
+                ts_path = ts_path.replace('.lua','.mts')
+                ts_root = root.replace('/output/lua','/output/typescript')
+                os.makedirs(ts_root, exist_ok=True)
+                with open(ts_path, 'w', encoding='utf-8') as ts:
+                    ts.write(response)

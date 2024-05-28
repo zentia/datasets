@@ -1,2 +1,0 @@
-2024-05-22 04:12:31,782 modeling.py get_balanced_memory [line:989] INFO We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
-2024-05-22 04:12:34,828 qwen.py reasoning [line:252] INFO /media/liyanfeng/2TM2/OSCE_0704/Project/DevAssets/TypeScript_AI/src/system/logic/ui-system/lobby/ui/ui-used-prop-tip.mts
