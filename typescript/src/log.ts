@@ -10,3 +10,15 @@ export function logMessage(messages: string): void {
         }
     });
 }
+
+export function deleteLogFile() {
+  const filePath = path.join(__dirname, 'app.log');
+
+  try {
+      fs.unlinkSync(filePath);
+      console.log('File deleted successfully.');
+  } catch (err) {
+      console.error(`Failed to delete file: ${err}`);
+  }
+  
+}

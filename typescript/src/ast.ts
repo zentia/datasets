@@ -1,10 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { logMessage } from "./log";
-import { getFileNameWithoutExtension } from './common';
-import ts from 'typescript';
 import { mergeSourceFiles } from './mergeClasses';
-import { readFileSync } from 'fs';
 
 
 function traverseDirectory(dir: string, tsMap: Map<string, string[]>): void {
@@ -34,7 +30,7 @@ function traverseDirectory(dir: string, tsMap: Map<string, string[]>): void {
 }
 
 export function testAst(){
-    const tsDirs = '/media/liyanfeng/8T/datasets/output/typescript';
+    const tsDirs = '/media/liyanfeng/8T/datasets/output/typescript/Prize';
     const tsMap = new Map<string, string[]>();
     traverseDirectory(tsDirs, tsMap);
     
