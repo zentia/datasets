@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import os
-from common import change_file_extension, clear_folder, convert_to_utf8, convert_path_to_snake_case
+from common import change_file_extension, clear_folder, convert_path_to_snake_case
 import shutil
 
 working_directory = '/media/liyanfeng/1TSata/trunk_proj/Tools/osg-dev-kit/lsp-server'
