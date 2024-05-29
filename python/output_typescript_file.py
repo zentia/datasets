@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
   target_dirs = current_directory + '/../output/typescript'
 
-  ts_root_path = '/media/liyanfeng/2TM2/OSCE_0704/Project/DevAssets/TypeScript_AI/src/system/ui-system'
+  ts_root_path = '/media/liyanfeng/2TM2/OSCE_0704/Project/DevAssets/TypeScript/src/system/ui-system'
 
   for root, dirs, files in os.walk(target_dirs):
     for file in files:
