@@ -7,8 +7,8 @@ from accelerate import infer_auto_device_map, init_empty_weights
 from modelscope import AutoConfig, AutoModelForCausalLM
 from peft import PeftModel
 from peft import LoraConfig, TaskType, get_peft_model
-import subprocess
 import common
+import sys
 
 
 working_directory = '/media/liyanfeng/1TSata/trunk_proj/Tools/osg-dev-kit/lsp-server'
@@ -87,16 +87,7 @@ lua_files = find_lua_files(lua_root_path)
 device = "cuda" # the device to load the model onto
 
 model_id = "qwen/CodeQwen1.5-7B-Chat"
-lora_path = '/media/liyanfeng/8T/self-llm/Qwen1.5/output/CodeQwen1.5/checkpoint-500/'
-# model_id = "./output/new_model/"
-# model_id="qwen/CodeQwen1.5-7B-Chat"
-# config = AutoConfig.from_pretrained(model_id)
-# with init_empty_weights():
-#     model = AutoModelForCausalLM.from_config(config)
-
-# device_map = infer_auto_device_map(model, no_split_module_classes=["OPTDecoderLayer"])
-
-# print(device_map)
+lora_path = '../output/CodeQwen1.5/checkpoint-500/'
 
 tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(
@@ -124,7 +115,7 @@ def reasoning_segment(prompts:list, methods:list,path:str):
 
 def reasoning_element(prompt:str):
   messages = [
-      {"role": "system", "content": "Lua翻译成TypeScript"},
+      {"role": "system", "content": "Lua翻译成TypeScript，规则如下：1.所有的赋值为false的语句是未定义行为。2.ctor是构造函数，需要声明并定义里面的成员，翻译其它函数的时候不要补充成员定义。3.uid是的类型是bigint。4.不要定义返回值类型。5.忽略auto_bind()函数。"},
       {"role": "user", "content": prompt}
   ]
   
@@ -139,7 +130,7 @@ def reasoning_element(prompt:str):
   # 使用模型的generate方法进行文本生成
   generated_ids = model.generate(
     model_inputs.input_ids,
-    max_new_tokens=1024*9
+    max_new_tokens=1024*1
   )
   generated_ids = [
       output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -228,10 +219,17 @@ def reasoning(file:str, force:bool):
     response = reasoning_element(prompt)
     write_file(temp,response,new_extension)    
 
+    
+# python .\qwen.py D:/datasets/output/lua/nts
 if __name__ == '__main__':
     ts_dirs = '../output/typescript'
     lua_dirs = '../output/lua'
-    common.clear_folder(ts_dirs)
+    args = sys.argv[1:]
+    if len(args) == 1:
+        lua_dirs = args[0]
+        print(lua_dirs)
+    else:
+        common.clear_folder(ts_dirs)
     for root, dirs, files in os.walk(lua_dirs):
         for file in files:
             path = os.path.join(root, file)
@@ -241,5 +239,6 @@ if __name__ == '__main__':
                 ts_path = ts_path.replace('.lua','.mts')
                 ts_root = root.replace('/output/lua','/output/typescript')
                 os.makedirs(ts_root, exist_ok=True)
+                print(ts_path)
                 with open(ts_path, 'w', encoding='utf-8') as ts:
                     ts.write(response)

@@ -5,6 +5,7 @@ import java.io.File
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
@@ -30,45 +31,41 @@ class Client {
             while (this.reader.readLine().also { message = it } != null) {
                 if (message == "1" || message == "0") {
                     if (this.buffer.isNotEmpty()){
-                        extract(this.buffer)
+                        extract(this.buffer, message!!)
                         this.buffer.clear()
                     }
+                } else {
+                    message?.let { this.buffer.add(it) }
                 }
-                message?.let { this.buffer.add(it) }
             }
         }
     }
-    private fun extract(lines:List<String>) {
+    private fun extract(lines:List<String>, id: String) {
         if (lines.isNotEmpty()) {
-            var line = lines[0]
-            val filePath = lines[1]
-            if (line == "1") {
-                if (lines.size > 2) {
-                    line = lines[2]
-                    var ctor = ""
-                    var start = 3
-                    if (line.endsWith("ctor")) {
-                        ctor = line
-                        start = 4
+            val filePath = lines[0]
+            if (id == "1") {
+                if (lines.size > 1) {
+                    for (i in 2..lines.size) {
+                        retrieveTypeInfo(filePath,lines[i-1], kind = SyntaxKind.LuaClassMethodDef)
                     }
-                    for (i in start..lines.size) {
-                        retrieveTypeInfo(filePath,lines[i-1], ctor)
-                    }
+                    retrieveTypeInfo(filePath,"",SyntaxKind.LuaExprStat)
+                    retrieveTypeInfo(filePath,"",SyntaxKind.LuaComment)
+                    retrieveTypeInfo(filePath,"",SyntaxKind.LuaLocalDef)
                 } else {
-                    output(filePath, "", "")
+                    output(filePath, "", "", SyntaxKind.Unknown)
                 }
             } else {
                 if (lines.size > 3) {
-                    output(filePath, lines[2], lines.subList(3,lines.size).joinToString("\n"))
+                    val kind = SyntaxKind.valueOf(lines[2])
+                    output(filePath, lines[1], lines.subList(3,lines.size).joinToString("\n"), kind)
                 } else {
-                    output(filePath, "", "")
+                    output(filePath, "", "", SyntaxKind.Unknown)
                 }
             }
         }
     }
-    private fun retrieveTypeInfo(filePath:String, method:String, ctor:String){
-        val interestFunc = if (ctor.isNotEmpty())  "-func=$method,$ctor" else "-func=$method"
-        this.writer.println("-filepath=$filePath $interestFunc -drop_decl -list=0")
+    private fun retrieveTypeInfo(filePath:String, method:String, kind: SyntaxKind){
+        this.writer.println("-filepath=$filePath -func=$method -drop_decl -list=0 -kind=$kind")
     }
     fun input(filePath:String){
         this.writer.println("-filepath=$filePath -drop_decl -list=1")
@@ -76,27 +73,29 @@ class Client {
     fun close(){
         this.sock.close()
     }
-    private fun output(path:String, method: String, content:String){
+    private fun output(path:String, method: String, content:String, kind: SyntaxKind) {
         if (content.isEmpty()) {
             val relationPath = getRelationPath(path)
-            val src = Paths.get(path)
-            val targetFile = File("$outputDirectory/$relationPath")
-            val targetDirectory = File(targetFile.parent)
-            if (!targetDirectory.exists()) {
-                targetDirectory.mkdirs()
-            }
-            val target = Paths.get("$outputDirectory/$relationPath")
-            Files.copy(src, target, StandardCopyOption.REPLACE_EXISTING)
+            copyFile(path,"$outputDirectory/$relationPath")
         } else {
-            val relationPath = getRelationPathWithoutExtension(File(path))
-            val sign = if (method.contains(':')) method.split(':')[1] else method.split('.')[1]
+            val relationPath = getRelationPathWithoutExtension(File(path), srcDirectoryLen)
+            var sign = ""
+            if (kind == SyntaxKind.LuaComment) {
+                sign = "LuaComment"
+            } else if (kind == SyntaxKind.LuaExprStat) {
+                sign = "LuaExprStat"
+            } else if (kind == SyntaxKind.LuaLocalDef) {
+                sign = "LuaLocalDef"
+            } else if (kind == SyntaxKind.LuaClassMethodDef) {
+                sign = if (method.contains(':')) method.split(':')[1] else method.split('.')[1]
+            }
             val target = "$outputDirectory/$relationPath@$sign.lua"
             val file = File(target)
             val targetDirectory = File(file.parent)
             if (!targetDirectory.exists()) {
                 targetDirectory.mkdirs()
             }
-            file.writeText(content)
+            file.writeText(content, Charset.forName("UTF-8"))
         }
     }
 }

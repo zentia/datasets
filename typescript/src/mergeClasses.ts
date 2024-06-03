@@ -2,6 +2,16 @@ import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logMessage } from './log';
+import { removeTrailingSubstring } from './common';
+
+enum ClassType {
+  None,
+  Mediator,
+  UI,
+  Module,
+}
+
+let classType = ClassType.None;
 
 export function readSourceFile(filePath: string): ts.SourceFile {
   const sourceCode = fs.readFileSync(filePath, 'utf8');
@@ -46,23 +56,32 @@ function mergeClasses(classes: ts.ClassDeclaration[], sourceFiles: ts.SourceFile
   let resultFile:ts.SourceFile|undefined = undefined;
   baseClass.forEachChild(node=>{
     if (node.kind == ts.SyntaxKind.Identifier) {
-        resultFile = ts.createSourceFile('', `export class ${node.getText(baseClassSourceFile)}\{\n${mergedTextMembers.join('\n')}\n\}`, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+      let className = node.getText(baseClassSourceFile);
+      className = removeTrailingSubstring(className, 'Class');
+      classType = ClassType.None;
+      if (className.endsWith('Mediator')) {
+        className = `export class ${className} extends Mediator`;
+        classType = ClassType.Mediator;
+      } else {
+        className = `export class ${className};`
+      }
+      resultFile = ts.createSourceFile('', `${className}\{\n${mergedTextMembers.join('\n')}\n\}`, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
     }
   })
   return resultFile;
 }
 
-function mergeEnumes(enumes: ts.EnumDeclaration[], sourceFiles: ts.SourceFile[]): ts.SourceFile|undefined{
-  if (enumes.length === 0) {
+function mergeEnums(enums: ts.EnumDeclaration[], sourceFiles: ts.SourceFile[]): ts.SourceFile|undefined{
+  if (enums.length === 0) {
     console.error('No enumes to merge');
   }
 
-  const baseEnum = enumes[0];
+  const baseEnum = enums[0];
   const baseEnumSourceFile = sourceFiles[0];
   const mergedTextMembers: string[] = [];
   const memberTextMap = new Map<string, string>();
-  for (let i = 0; i < enumes.length; i++) {
-    const e = enumes[i];
+  for (let i = 0; i < enums.length; i++) {
+    const e = enums[i];
     const sourceFile = sourceFiles[i];
     e.members.forEach(member=>{
       if (!memberTextMap.has(member.name.getText(sourceFile))) {
@@ -166,7 +185,7 @@ function collectEnum(sourceFiles: ts.SourceFile[]) {
     });
     const mergedSourceFiles: ts.SourceFile[] = [];
     enumMap.forEach((enumes, enumName)=>{
-      const sourceFile = mergeEnumes(enumes, enumSourceMap.get(enumName)!);
+      const sourceFile = mergeEnums(enumes, enumSourceMap.get(enumName)!);
       if (sourceFile) {
         mergedSourceFiles.push(sourceFile);
       }
@@ -175,17 +194,25 @@ function collectEnum(sourceFiles: ts.SourceFile[]) {
 }
 
 function collectComments() {
-  return ts.createSourceFile('',`/* eslint-disable camelcase */\n/* eslint-disable @typescript-eslint/naming-convention */\n`,ts.ScriptTarget.Latest,false,ts.ScriptKind.TS);
+  let head = `/* eslint-disable camelcase */\n/* eslint-disable @typescript-eslint/naming-convention */\n`;
+  if (classType == ClassType.Mediator) {
+    head = `${head}import { Mediator } from '~/system/framework/smvc/index.mjs';\n`;
+  } else if (classType == ClassType.UI) {
+    head = `${head}import { mixin } from '~/common/types/mixin.mjs';\n\nimport { UIView } from 'framework/smvc/index.mjs';`
+  }
+
+  return ts.createSourceFile('',head,ts.ScriptTarget.Latest,false,ts.ScriptKind.TS);
 }
 
 export function mergeSourceFiles(filePaths: string[], outputFile: string): void {
   const sourceFiles = filePaths.map(readSourceFile);
 
+  const classes = collectClass(sourceFiles);
   const mergedSourceFiles = [collectComments()];
   mergedSourceFiles.push(...collectEnum(sourceFiles));
   mergedSourceFiles.push(...collectFunction(sourceFiles));
   mergedSourceFiles.push(...collectInterface(sourceFiles));
-  mergedSourceFiles.push(...collectClass(sourceFiles));
+  mergedSourceFiles.push(...classes);
 
   const printer = ts.createPrinter();
 

@@ -30,7 +30,7 @@ function traverseDirectory(dir: string, tsMap: Map<string, string[]>): void {
 }
 
 export function testAst(){
-    const tsDirs = '/media/liyanfeng/8T/datasets/output/typescript/Prize';
+    const tsDirs = '../output/typescript';
     const tsMap = new Map<string, string[]>();
     traverseDirectory(tsDirs, tsMap);
     
